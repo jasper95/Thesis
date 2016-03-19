@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+<title>fixed grid</title>
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?libraries=geometry&sensor=false"></script>
+<script type="text/javascript">
+    var map;
+    var infowindow = new google.maps.InfoWindow();
+    var rectArr=[];
+    var cols=["red","blue","green","yellow","orange","gray"]
+    var cebuBounds;
+    function initialize() {
+        var rectangle;
+        var coachella = new google.maps.LatLng(10.3224,123.8985);
+        var myOptions = {
+            zoom: 12,
+            center: coachella,
+            mapTypeId: google.maps.MapTypeId.TERRAIN
+        };
+        map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+        cebuBounds = new google.maps.Rectangle({
+            strokeColor: '#FF0000',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            fillColor: '#FF0000',
+            fillOpacity: 0.00,
+            map: map,
+            bounds: {
+                north: 10.498277,
+                south: 10.2594266,
+                east: 123.9291998,
+                west: 123.7633896
+            }
+        });
+        drawRects();
+    } 
+           
+    function drawRects () {
+        var NE = new google.maps.LatLng(10.498277, 123.9291998);
+        var S = google.maps.geometry.spherical.computeOffset(NE,1000,180);
+        var SW = google.maps.geometry.spherical.computeOffset(S,1000,270);  
+        for(var i = 0; ;i++){
+            NEtemp = google.maps.geometry.spherical.computeOffset(NE, i*1000, 180);
+            SWtemp = google.maps.geometry.spherical.computeOffset(SW, i*1000, 180);
+            if( !(cebuBounds.getBounds().contains(NEtemp) || cebuBounds.getBounds().contains(SWtemp)) )
+                break;
+            while(true){
+                var rectangle = new google.maps.Rectangle();
+                var rectOptions = {
+                    strokeColor: "#FF0000",
+                    strokeOpacity: 0.8,
+                    strokeWeight: 2,
+                    fillOpacity: 0.00,
+                    map: map,
+                    bounds: new google.maps.LatLngBounds(SWtemp,NEtemp)
+                };
+                rectangle.setOptions(rectOptions);
+                var NEtemp = google.maps.geometry.spherical.computeOffset(NEtemp,1000,270)
+                var SWtemp = google.maps.geometry.spherical.computeOffset(SWtemp,1000,270)
+                if( !(cebuBounds.getBounds().contains(NEtemp) || cebuBounds.getBounds().contains(SWtemp)) )
+                    break;
+            }
+        }
+    }
+</script>
+</head>
+<body onload="initialize()">
+  <div id="map_canvas" style="width:100%; height:400px"></div>
+</body>
+</html>

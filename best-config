@@ -1,0 +1,2 @@
+leakyRelu--sigmoid--binary_crossentropy--adagrad
+leakyRelu--sigmoid--poisson--adamax
