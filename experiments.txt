@@ -1,0 +1,17 @@
+EXPO1
+----------
+2 Parts
+
+1st Part
+
+-1X54X36 input dim
+-Fully Convolutional with no FC layer
+-1944 output dim
+
+2nd Part
+
+-856 input dim
+-1 Hidden Layer
+-856 output dim
+----------
+

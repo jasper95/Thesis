@@ -61,13 +61,14 @@ model.add(Convolution2D(1, filter_size, filter_size, border_mode='same'))
 model.add(LeakyReLU())
 model.add(Flatten())
 model.compile(loss='mse', optimizer='rmsprop')
-checkpoint = ModelCheckpoint('crime_prediction_classification_weight_54x36_SE.hdf5',
+checkpoint = ModelCheckpoint('weights/exp1_1.hdf5',
                              verbose=1, save_best_only=True)
-model.fit(X_train, Y_train, batch_size=32, nb_epoch=1000,
-          validation_data=(X_test, Y_test), show_accuracy=True)
+model.fit(X_train, Y_train, batch_size=32, nb_epoch=5000,
+          validation_data=(X_test, Y_test), show_accuracy=True,
+          callbacks=[checkpoint])
 
 # save model to json
 json_string = model.to_json()
-open('crime_prediction_model_classification_54x36_SE.json', 'w').write(json_string)
-model.save_weights('crime_prediction_classification_weight_54x36_SE.hdf5', 
-                   overwrite=True)
+open('models/exp1_1.json', 'w').write(json_string)
+# model.save_weights('weights/exp1_1.hdf5',
+#                    overwrite=True)
