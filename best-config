@@ -1,2 +1,9 @@
 leakyRelu--sigmoid--binary_crossentropy--adagrad
-leakyRelu--sigmoid--poisson--adamax
+leakyRelu--sigmoid--poisson--adagrad
+leakyRelu--hard_sigmoid--poisson--adam batch_size=32 epoch=6
+leakyRelu--hard_sigmoid--poisson--adamax batch_size=32
+
+
+Accuracy = (TP+TN)/FP+FN+TP+TN
+Recall = TP/(TP+TN)
+Precision = TP/(FP+TP)
