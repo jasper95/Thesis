@@ -20,8 +20,8 @@ model.load_weights('weights/exp1_2.hdf5')
 output_data[output_data > 0] = 1
 prediction = model.predict(input_data, batch_size=input_data.shape[0])
 
-prediction[prediction >= .3] = 1
-prediction[prediction < .3] = 0
+prediction[prediction >= .5] = 1
+prediction[prediction < .5] = 0
 
 F = acc = 0.0
 for i in range(input_data.shape[0]):

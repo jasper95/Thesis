@@ -63,7 +63,7 @@ model.add(Flatten())
 model.compile(loss='mse', optimizer='rmsprop')
 checkpoint = ModelCheckpoint('weights/exp1_1.hdf5',
                              verbose=1, save_best_only=True)
-model.fit(X_train, Y_train, batch_size=32, nb_epoch=5000,
+model.fit(X_train, Y_train, batch_size=32, nb_epoch=2000,
           validation_data=(X_test, Y_test), show_accuracy=True,
           callbacks=[checkpoint])
 

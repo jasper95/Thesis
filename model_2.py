@@ -29,10 +29,10 @@ model = Sequential()
 model.add(Dense(Y_train.shape[1], input_dim=X_train.shape[1],
                 activation='tanh'))
 sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
-model.compile(loss='mse', optimizer='adam')
+model.compile(loss='mse', optimizer='rmsprop')
 checkpoint = ModelCheckpoint('weights/exp1_2.hdf5',
                              verbose=1, save_best_only=True)
-model.fit(X_train, Y_train, batch_size=32, nb_epoch=100,
+model.fit(X_train, Y_train, batch_size=32, nb_epoch=500,
           validation_data=(X_test, Y_test), show_accuracy=True,
           callbacks=[checkpoint])
 json_string = model.to_json()
