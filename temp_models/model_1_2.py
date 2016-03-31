@@ -7,8 +7,8 @@ from collections import Counter
 from keras.optimizers import SGD
 
 
-output_data = np.loadtxt('final_weekly_data.txt')
-trained_data = np.loadtxt('outputs/exp1_1_output.txt')
+output_data = np.loadtxt('../final_weekly_data.txt')
+trained_data = np.loadtxt('../outputs/exp1_1_output.txt')
 trained_data_samples = output_data.shape[1]
 SE = output_data.reshape((output_data.shape[0], 1, 107, 72))
 SE = SE[:, :, 107/2:, 0:72/2]
@@ -36,4 +36,4 @@ model.fit(X_train, Y_train, batch_size=32, nb_epoch=500,
           validation_data=(X_test, Y_test), show_accuracy=True,
           callbacks=[checkpoint])
 json_string = model.to_json()
-open('models/exp1_2.json', 'w').write(json_string)
+open('../models/exp1_2.json', 'w').write(json_string)

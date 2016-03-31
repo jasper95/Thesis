@@ -12,11 +12,11 @@ from keras.layers.advanced_activations import LeakyReLU
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 
 
-data = np.loadtxt('final_weekly_data.txt')
+data = np.loadtxt('../final_weekly_data.txt')
 nb_examples = data.shape[0]
 data = data.reshape((nb_examples, 1, 107, 72))
-model = model_from_json(open('models/exp1_1.json').read())
-model.load_weights('weights/exp1_1.hdf5')
+model = model_from_json(open('../models/exp1_1.json').read())
+model.load_weights('../weights/exp1_1.hdf5')
 
 SE = data[:, :, 107/2:, 0:72/2]
 
@@ -32,4 +32,4 @@ indices = np.nonzero(np.any(all_data != 0, axis=0))[0]
 
 print (prediction.shape, ground_truth.shape)
 output_for_training = prediction[:, indices]
-np.savetxt('outputs/exp1_1_output.txt', output_for_training, delimiter=' ')
+np.savetxt('../outputs/exp1_1_output.txt', output_for_training, delimiter=' ')
