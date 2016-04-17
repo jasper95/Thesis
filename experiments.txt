@@ -15,3 +15,25 @@ EXPO1
 -856 output dim
 ----------
 
+EXPO3
+
+Configs:
+    input_shape=(3, 27, 18, 1)
+    tanh activation
+    binary_crossentropy
+    adadelta
+
+1st Dataset:
+    Unchanged Input and Output
+
+
+2nd Dataset:
+    1/0 input/output
+
+
+3rd Dataset
+    1/-1 input and output
+
+
+4th
+    proba aand avg score    

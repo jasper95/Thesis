@@ -5,5 +5,9 @@ leakyRelu--hard_sigmoid--poisson--adamax batch_size=32
 
 
 Accuracy = (TP+TN)/FP+FN+TP+TN
-Recall = TP/(TP+TN)
+Recall = TP/(TP+FN)
 Precision = TP/(FP+TP)
+
+
+adadelta .84135
+rmsprop

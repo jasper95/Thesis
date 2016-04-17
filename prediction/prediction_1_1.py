@@ -10,7 +10,7 @@ from keras.layers.convolutional import (
 from keras.layers.core import Dense, Flatten, Activation, Dropout
 from keras.layers.advanced_activations import LeakyReLU
 from keras.callbacks import EarlyStopping, ModelCheckpoint
-
+import util
 
 data = np.loadtxt('../final_weekly_data.txt')
 nb_examples = data.shape[0]
@@ -28,8 +28,19 @@ ground_truth = ground_truth.reshape((nb_examples-1, 54*36))
 all_data = all_data.reshape(nb_examples, 54*36)
 
 prediction = model.predict(test_input, batch_size=nb_examples)
-indices = np.nonzero(np.any(all_data != 0, axis=0))[0]
+# indices = np.nonzero(np.any(all_data != 0, axis=0))[0]
 
-print (prediction.shape, ground_truth.shape)
-output_for_training = prediction[:, indices]
-np.savetxt('../outputs/exp1_1_output.txt', output_for_training, delimiter=' ')
+# print (prediction.shape, ground_truth.shape)
+# output_for_training = prediction[:, indices]
+# np.savetxt('../outputs/exp1_1_output.txt', output_for_training, delimiter=' ')
+
+prediction[prediction >= 1] = 1
+prediction[prediction < 1] = 0
+F = acc = 0.0
+for i in range(test_input.shape[0]):
+    acc += np_utils.accuracy(prediction[i], ground_truth[i])
+    F += util.fScore(prediction[i], ground_truth[i])
+
+acc /= test_input.shape[0]
+F /= ground_truth.shape[0]
+print('Accuracy:', acc, ' F-score', F)

@@ -1,6 +1,5 @@
 var map, cebuPolygoncebuBounds, rectArr = [], rectCounts = [], height, width, finalResult  = ''
-var finalResultNE = '', finalResultNW = '', finalResultSE = '', finalResultSW = ''
-var textFileNE = null, textFileNW = null, textFileSE = null, textFileSW = null
+var textFile = null
 var utm = "+proj=utm +zone=51", wgs84 = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
 //COORDS
 var polygonCoordinates = [
@@ -426,75 +425,34 @@ $(document).ready(function () {
 	
 	//process the data of each file
 	function processData(e, files, ctr){
-		var weeklyCounts = createNew2DArray()
+        var week1DOutput = ''
+        var non_zero2 = 0
+        var weeklyCounts = createNew2DArray()
 		var data = e.target.result.split('\n')
 		for(var i=0; i<data.length-1; i++){
         	var example = data[i].split(' ')
         	var x_y = proj4(utm,wgs84,[example[2], example[3]])
         	findAndIncrementGridCount(new google.maps.LatLng(x_y[1], x_y[0]), weeklyCounts)
-        }
-        var week1DOutputNE = '', week1DOutputNW = '', week1DOutputSE = '', week1DOutputSW = ''
-        for (var a=0; a < Math.floor(height/2);a++){
-        	for(var b=0; b < Math.floor(width/2); b++){
-        		var space = (a === (height/2)-1 && b === (width/2)-1) ? '' : ' '
-        		week1DOutputNE += weeklyCounts[a][b] + space
-        	}
-        }
-        for (var c=0; c < Math.floor(height/2); c++){
-        	for(var d= Math.floor(width/2); d < width; d++){
-        		var space = (c === (height/2)-1 && d === width-1) ? '' : ' '
-        		week1DOutputNW = weeklyCounts[c][d] + space
-        	}
-
-        }
-        for (var e=Math.floor(height/2); e < height;e++){
-        	for(var f=0; f < Math.floor(width/2); f++){
-        		var space = (e === height-1 && f === (width/2)-1) ? '' : ' '
-        		week1DOutputSE += weeklyCounts[e][f] + space
-        	}
-        }
-        for (var g=Math.floor(height/2); g < height ; g++){
-        	for(var h=Math.floor(width/2); h < width; h++){
-        		var space = (g === height-1 && h === width-1) ? '' : ' '
-        		week1DOutputSW = weeklyCounts[g][h] + space
-        	}
-
-        }
-        finalResultNE += week1DOutputNE+'\n'
-        finalResultNW += week1DOutputNW+'\n'
-        finalResultSW += week1DOutputSW+'\n'
-        finalResultSE += week1DOutputSE+'\n'
-        if(ctr < files.length-1)
-        	read(files, ctr+1)
-        else{
-    		$('#lDownloadNE').attr('href', makeFile(finalResultNE, textFileNE))
-    		$('#lDownloadNE').show()
-    		$('#lDownloadNW').attr('href', makeFile(finalResultNW, textFileNW))
-    		$('#lDownloadNW').show()
-    		$('#lDownloadSE').attr('href', makeFile(finalResultSE, textFileSE))
-    		$('#lDownloadSE').show()
-    		$('#lDownloadSW').attr('href', makeFile(finalResultSW, textFileSW))
-    		$('#lDownloadSW').show()
-        }
-        /*var week1DOutput = ''
-        var non_zero2 = 0
+    	}
     	for(var i=0; i<height; i++){
     		for(var j=0; j<width; j++){
     			var space = (j === height-1 && i === width-1) ? '' : ' '
     			week1DOutput += weeklyCounts[i][j] + space
+    			if(weeklyCounts[i][j] > 0) non_zero2++
     		}
-		}*/
-		/*finalResult += week1DOutput+'\n'	
+		}
+		console.log(non_zero2)
+		finalResult += week1DOutput+'\n'	
     	if(ctr < files.length-1)
     		read(files, ctr+1)
     	else{
     		$('#lDownload').attr('href', makeFile(finalResult))
     		$('#lDownload').show()
-    	} */
+    	} 
 	}
 
 	//makes text files for the output
-	function makeFile(output, textFile){
+	function makeFile(output){
 		var data = new Blob([output], {type: 'text/plain'})
 		if(textFile !== null)
 			window.URL.revokeObjectURL(textFile)
@@ -549,14 +507,14 @@ $(document).ready(function () {
    	}
 
    	//initialize and draw the grids overlay 
-   	function initAndDrawGird () {
+   	function initAndDrawGird (cellSize) {
         var NE = new google.maps.LatLng(10.498277, 123.9291998);
-        var S = google.maps.geometry.spherical.computeOffset(NE,250,180)
-        var SW = google.maps.geometry.spherical.computeOffset(S,250,270)  
+        var S = google.maps.geometry.spherical.computeOffset(NE,cellSize,180)
+        var SW = google.maps.geometry.spherical.computeOffset(S,cellSize,270)  
         var h_lim, w_lim, NE2
         for(var i = 0; ;i++){
-            NEtemp = google.maps.geometry.spherical.computeOffset(NE, i*250, 180)
-            SWtemp = google.maps.geometry.spherical.computeOffset(SW, i*250, 180)
+            NEtemp = google.maps.geometry.spherical.computeOffset(NE, i*cellSize, 180)
+            SWtemp = google.maps.geometry.spherical.computeOffset(SW, i*cellSize, 180)
             if( !(cebuBounds.getBounds().contains(NEtemp) || cebuBounds.getBounds().contains(SWtemp)) ){
                 h_lim = height = i;
                 break;
@@ -574,8 +532,8 @@ $(document).ready(function () {
                 };
                 rectangle.setOptions(rectOptions)
             	subl.push(rectangle)
-                var NEtemp = google.maps.geometry.spherical.computeOffset(NEtemp,250,270)
-                var SWtemp = google.maps.geometry.spherical.computeOffset(SWtemp,250,270)
+                var NEtemp = google.maps.geometry.spherical.computeOffset(NEtemp,cellSize,270)
+                var SWtemp = google.maps.geometry.spherical.computeOffset(SWtemp,cellSize,270)
                 if( !(cebuBounds.getBounds().contains(NEtemp) || cebuBounds.getBounds().contains(SWtemp)) ){
                     if(i == 0){
                     	w_lim = width = k
@@ -586,29 +544,7 @@ $(document).ready(function () {
                 }
             }
         }
-        //console.log(rectArr[0].length)
-/*        S = google.maps.geometry.spherical.computeOffset(NE2,250,180)
-        SW = google.maps.geometry.spherical.computeOffset(S,250,270) 
-        for(var i = 0; i < h_lim; i++){
-        	NEtemp = google.maps.geometry.spherical.computeOffset(NE2, i*250, 180)
-            SWtemp = google.maps.geometry.spherical.computeOffset(SW, i*250, 180)
-        	for(var k=0; k < (h_lim-w_lim);k++){
-        		var rectangle = new google.maps.Rectangle()
-                var rectOptions = {
-                    strokeColor: "#FF0000",
-                    strokeOpacity: 0.3,
-                    strokeWeight: 2,
-                    fillOpacity: 0.00,
-                    map: map,
-                    bounds: new google.maps.LatLngBounds(SWtemp,NEtemp)
-                };
-                rectangle.setOptions(rectOptions)
-                rectArr[i].push(rectangle)  
-                var NEtemp = google.maps.geometry.spherical.computeOffset(NEtemp,250,270)
-                var SWtemp = google.maps.geometry.spherical.computeOffset(SWtemp,250,270)
-            }
-            //rectCounts.push(Array.apply(null, Array(h_lim)).map(Number.prototype.valueOf,0))
-        }*/
+        console.log(height+' '+width)
     }
     function createNew2DArray(){
     	var newArray =  []
@@ -617,5 +553,5 @@ $(document).ready(function () {
     	return newArray
     }
    	initAndDrawCebuBoundsAndPolygon()
-   	initAndDrawGird()
+   	initAndDrawGird(500)
 });

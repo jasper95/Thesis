@@ -1,7 +1,7 @@
 import numpy as np
 from keras.models import model_from_json
 from keras.utils import np_utils
-from .. import util
+import util
 
 input_data = np.loadtxt('../outputs/exp1_1_output.txt')
 output_data = np.loadtxt('../final_weekly_data.txt')
@@ -20,8 +20,8 @@ model.load_weights('../weights/exp1_2.hdf5')
 output_data[output_data > 0] = 1
 prediction = model.predict(input_data, batch_size=input_data.shape[0])
 
-prediction[prediction >= .5] = 1
-prediction[prediction < .5] = 0
+prediction[prediction >= .4] = 1
+prediction[prediction < .4] = 0
 
 F = acc = 0.0
 for i in range(input_data.shape[0]):

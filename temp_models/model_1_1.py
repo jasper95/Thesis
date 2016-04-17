@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import division
 import numpy as np
 from keras.models import Sequential
 from keras.layers.convolutional import (
@@ -21,10 +19,10 @@ padding_size = 1
 
 SE = all_data[:, :, 107/2:, 0:72/2]
 SE = SE.reshape((sample_size, 54*36))
-indices = np.nonzero(np.any(SE != 0, axis=0))[0]
-mask = np.ones(SE.shape, dtype=bool)
-mask[:, indices] = False
-SE[mask] = -1
+# indices = np.nonzero(np.any(SE != 0, axis=0))[0]
+# mask = np.ones(SE.shape, dtype=bool)
+# mask[:, indices] = False
+# SE[mask] = -1
 
 SE = SE.reshape((sample_size, 1, 54, 36))
 
@@ -52,18 +50,19 @@ Y_test = Y_test.reshape((Y_test.shape[0], 54*36))
 model = Sequential()
 model.add(Convolution2D(1, filter_size, filter_size, border_mode='same',
                         input_shape=(1, 54, 36)))
-model.add(LeakyReLU())
+model.add(Activation('relu'))
 model.add(Convolution2D(1, filter_size, filter_size, border_mode='same'))
-model.add(LeakyReLU())
+model.add(Activation('relu'))
 model.add(Convolution2D(1, filter_size, filter_size, border_mode='same'))
-model.add(LeakyReLU())
+model.add(Activation('relu'))
 model.add(Convolution2D(1, filter_size, filter_size, border_mode='same'))
-model.add(LeakyReLU())
+model.add(Activation('relu'))
 model.add(Flatten())
+model.add(Dense(54*36))
 model.compile(loss='mse', optimizer='rmsprop')
 checkpoint = ModelCheckpoint('../weights/exp1_1.hdf5',
                              verbose=1, save_best_only=True)
-model.fit(X_train, Y_train, batch_size=32, nb_epoch=2000,
+model.fit(X_train, Y_train, batch_size=32, nb_epoch=200,
           validation_data=(X_test, Y_test), show_accuracy=True,
           callbacks=[checkpoint])
 
