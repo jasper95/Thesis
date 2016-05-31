@@ -1,5 +1,5 @@
-var map, cebuPolygoncebuBounds, rectArr = [], rectCounts = [], height, width, finalResult  = ''
-var textFile = null
+var map, map2, cebuPolygon, cebuPolygon2, cebuBounds, rectArr = [], rectArr2 = [], rectCounts = [], height, width, finalResult  = ''
+var actualCount = [], predictedCount = []
 var utm = "+proj=utm +zone=51", wgs84 = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
 //COORDS
 var polygonCoordinates = [
@@ -412,7 +412,98 @@ $(document).ready(function () {
 		var files = $('#file').prop("files")
 		read(files, 0) //read the first file
 	})
+	$('#bDisplayActual').on('click', function(e){
+		e.preventDefault()
+		var files = $('#actual').prop("files")
+		var reader = new FileReader()
+		reader.onload = function(e) {
+			displayCrime(e, rectArr, actualCount)
+		}
+		reader.readAsText(files[0], "UTF-8")
+	})
+	$('#bDisplayPredict').on('click', function(e){
+		e.preventDefault()
+		var files = $('#predicted').prop("files")
+		var reader = new FileReader()
+		reader.onload = function(e) {
+			displayCrime(e, rectArr2, predictedCount)
+			$('#lPred').show()
+		}
+		reader.readAsText(files[0], "UTF-8")
+	})
+	$('#lPred').on('click', function(){
+		$(this).attr('href', 'data:text/plain;charset=utf-8,'+encodeURIComponent(predCountToString()))		
+	})
+	$('#sMinimumThreshold').on('change', function(e){
+		var minThres = $(this).val()
+		for(var i=0; i<predictedCount.length; i++){
+			for(var j=0; j<predictedCount[i].length;j++){
+				if(predictedCount[i][j] > 0 && predictedCount[i][j]<minThres)
+					rectArr2[i][j].setOptions({'fillOpacity':0.8, fillColor:'green'})
+				else if(predictedCount[i][j] > 0)
+					colorGridBasedOnCount(predictedCount[i][j], rectArr2[i][j])
+			}
+		}
+	})
 
+	function displayCrime(e, renderArray, countsArray){
+		var data = e.target.result.split('\n')
+		for(var i=0; i<data.length; i++){
+			var res = data[i].split(' ')
+			res = res.map(Number)
+			countsArray.push(res)
+		}
+		for(var i=0; i<countsArray.length; i++){
+			for(var j=0; j<countsArray[i].length; j++){
+				try{
+					colorGridBasedOnCount(countsArray[i][j], renderArray[i][j])
+				}catch(err){
+					console.log(err+' '+i+' '+j)
+				}
+			}
+		}
+	}
+
+	function colorGridBasedOnCount(count, grid){
+		switch(count){
+			case -1:
+				color = 'green'
+				break;
+			case 0:
+				color = 'white'
+				break;
+			case 1:
+				color = '#EDB3B2'
+				break;
+			case 2:
+				color = '#E86664'
+				break;
+			case 3:
+				color = '#E33734'
+				break;
+			case 4:
+				color = '#E30B07'
+				break;
+		}
+		opacity  = (count == 0) ? 0.0 : 0.8
+		grid.setOptions({fillOpacity: opacity, fillColor:color})
+	}
+	
+	function predCountToString(){
+		var textRes =  ''
+		var thres = $('#sMinimumThreshold').val()
+		for(var i=0; i <height; i++){
+			for(var j=0; j<width; j++){
+				var x = predictedCount[i][j]
+				if(x != 0 && x < thres){
+					x = -1
+				}
+				textRes += x+' '
+			}
+			textRes += '\n'
+		}
+		return textRes
+	}
 	//read file
 	function read(files, ctr){
 		var file = files[ctr]
@@ -446,18 +537,9 @@ $(document).ready(function () {
     	if(ctr < files.length-1)
     		read(files, ctr+1)
     	else{
-    		$('#lDownload').attr('href', makeFile(finalResult))
+    		$('#lDownload').attr('href', 'data:text/plain;charset=utf-8,'+encodeURIComponent(finalResult))
     		$('#lDownload').show()
     	} 
-	}
-
-	//makes text files for the output
-	function makeFile(output){
-		var data = new Blob([output], {type: 'text/plain'})
-		if(textFile !== null)
-			window.URL.revokeObjectURL(textFile)
-		textFile = window.URL.createObjectURL(data);
-		return textFile	
 	}
 
 	//finds the point's grid and increment the grid count 
@@ -479,7 +561,8 @@ $(document).ready(function () {
             center: cebuCenter,
             mapTypeId: google.maps.MapTypeId.TERRAIN
         };
-        map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions)
+        map = new google.maps.Map(document.getElementById("map_canvas1"), mapOptions)
+        map2 = new google.maps.Map(document.getElementById("map_canvas2"), mapOptions)
         cebuPolygon = new google.maps.Polygon({
             paths: polygonCoordinates,
             strokeColor: "#FF0000",
@@ -488,7 +571,16 @@ $(document).ready(function () {
             fillColor: "#6666FF",
             fillOpacity: 0.00
         })
+        cebuPolygon2 = new google.maps.Polygon({
+            paths: polygonCoordinates,
+            strokeColor: "#FF0000",
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            fillColor: "#6666FF",
+            fillOpacity: 0.00
+        })
         cebuPolygon.setMap(map);
+        cebuPolygon2.setMap(map2);
        	cebuBounds = new google.maps.Rectangle({
 		    strokeColor: '#FF0000',
 		    strokeOpacity: 0.00,
@@ -503,7 +595,6 @@ $(document).ready(function () {
 	    	   	west: 123.7633896
 	    	}
 	   	})
-
    	}
 
    	//initialize and draw the grids overlay 
@@ -520,8 +611,10 @@ $(document).ready(function () {
                 break;
             }
             var subl = []
+            var subl2 = []
             for(var k=0; ;k++){
         		var rectangle = new google.maps.Rectangle()
+                var rectangle2 = new google.maps.Rectangle()
                 var rectOptions = {
                     strokeColor: "#FF0000",
                     strokeOpacity: 0.3,
@@ -530,8 +623,18 @@ $(document).ready(function () {
                     map: map,
                     bounds: new google.maps.LatLngBounds(SWtemp,NEtemp)
                 };
+                var rectOptions2 = {
+                    strokeColor: "#FF0000",
+                    strokeOpacity: 0.3,
+                    strokeWeight: 2,
+                    fillOpacity: 0.00,
+                    map: map2,
+                    bounds: new google.maps.LatLngBounds(SWtemp,NEtemp)
+                };
                 rectangle.setOptions(rectOptions)
+                rectangle2.setOptions(rectOptions2)
             	subl.push(rectangle)
+            	subl2.push(rectangle2)
                 var NEtemp = google.maps.geometry.spherical.computeOffset(NEtemp,cellSize,270)
                 var SWtemp = google.maps.geometry.spherical.computeOffset(SWtemp,cellSize,270)
                 if( !(cebuBounds.getBounds().contains(NEtemp) || cebuBounds.getBounds().contains(SWtemp)) ){
@@ -540,6 +643,7 @@ $(document).ready(function () {
                     	NE2 = NEtemp
                     }
                     rectArr.push(subl)
+                    rectArr2.push(subl2)
                     break
                 }
             }

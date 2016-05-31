@@ -18,22 +18,35 @@ EXPO1
 EXPO3
 
 Configs:
+
+1st:
+    weekly 500x500
     input_shape=(3, 27, 18, 1)
+    0.29773
+
+2nd :
+    weekly 250x250
+    input_shape=(3, 54, 36, 1)
+    0.130834
+
+
+
+Configs:
+    input_shape=(5, 27, 18, 1)
     tanh activation
     binary_crossentropy
     adadelta
-
-1st Dataset:
-    Unchanged Input and Output
+5th
 
 
-2nd Dataset:
-    1/0 input/output
 
-
-3rd Dataset
-    1/-1 input and output
-
-
-4th
-    proba aand avg score    
+11th
+    daily 500x500
+    input_shape=(3, 27, 18, 1)
+12th
+    daily 500x500
+    input_shape=(5, 27, 18, 1)
+13th
+    daily 500x500
+    input_shape=(7, 27, 18, 1)
+    0.0795792
