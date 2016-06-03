@@ -10,10 +10,10 @@ from helpers.preprocessing import load_data
 from helpers.util import shuffle_in_unison_inplace
 
 # loading processed data
-all_data = np.loadtxt('../final_weekly_data_250.txt')
+all_data = np.loadtxt('../final_daily_data_250.txt')
 
 # loading preprocessed with avg and proba data
-input_data = load_data('weekly', 250)
+input_data = load_data('daily', 250)
 
 height = 107
 width = 72
@@ -58,9 +58,9 @@ X_test = X[X.shape[0]*.8:]
 Y_test = Y[Y.shape[0]*.8:]
 
 # saving test set to files for prediction
-np.savetxt('../test_set/exp3/2_X.txt',
+np.savetxt('../test_set/exp3/14_X.txt',
            X_test.reshape(X_test.shape[0], input_length*height_red*width_red))
-np.savetxt('../test_set/exp3/2_Y.txt',
+np.savetxt('../test_set/exp3/14_Y.txt',
            Y_test.reshape(Y_test.shape[0], input_length*height_red*width_red))
 
 
@@ -78,7 +78,7 @@ model.add(Convolution3D(nb_filter=1, kernel_dim1=1, kernel_dim2=3,
                         kernel_dim3=3, activation='tanh',
                         border_mode="same", dim_ordering='tf'))
 model.compile(loss='binary_crossentropy', optimizer='adadelta')
-checkpoint = ModelCheckpoint('../weights/exp3_2.hdf5',
+checkpoint = ModelCheckpoint('../weights/exp3_14.hdf5',
                              verbose=1, save_best_only=True)
 model.fit(X_train, Y_train, batch_size=128, nb_epoch=1000,
           validation_split=0.25, show_accuracy=True,

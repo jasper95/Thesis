@@ -1,6 +1,7 @@
 var map, map2, cebuPolygon, cebuPolygon2, cebuBounds, rectArr = [], rectArr2 = [], rectCounts = [], height, width, finalResult  = ''
 var actualCount = [], predictedCount = []
 var utm = "+proj=utm +zone=51", wgs84 = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
+var textData = null, textPred = null
 //COORDS
 var polygonCoordinates = [
 	new google.maps.LatLng(10.489839553833235, 123.89183044433616), 
@@ -537,11 +538,18 @@ $(document).ready(function () {
     	if(ctr < files.length-1)
     		read(files, ctr+1)
     	else{
-    		$('#lDownload').attr('href', 'data:text/plain;charset=utf-8,'+encodeURIComponent(finalResult))
+    		$('#lDownload').attr('href', makeFile(finalResult, textData))
     		$('#lDownload').show()
     	} 
 	}
-
+	//makes text files for the output
+	function makeFile(output, textFile){
+		var data = new Blob([output], {type: 'text/plain'})
+		if(textFile !== null)
+			window.URL.revokeObjectURL(textFile)
+		textFile = window.URL.createObjectURL(data);
+		return textFile	
+	}
 	//finds the point's grid and increment the grid count 
 	function findAndIncrementGridCount(point, rectCounts_copy){
 		outer:
@@ -657,5 +665,5 @@ $(document).ready(function () {
     	return newArray
     }
    	initAndDrawCebuBoundsAndPolygon()
-   	initAndDrawGird(500)
+   	initAndDrawGird(250)
 });

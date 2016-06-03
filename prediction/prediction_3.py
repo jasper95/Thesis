@@ -15,7 +15,7 @@ from operator import add
 
 height = 54
 width = 36
-input_length = 3
+input_length = 7
 
 height_red = height/2
 width_red = width/2
@@ -36,7 +36,7 @@ model.add(Convolution3D(nb_filter=1, kernel_dim1=1, kernel_dim2=3,
 model.compile(loss='mse', optimizer='rmsprop')
 
 
-f = h5py.File('../weights/exp3_1.hdf5')
+f = h5py.File('../weights/exp3_13.hdf5')
 for k in range(f.attrs['nb_layers']):
     if k >= len(model.layers):
         break
@@ -47,7 +47,7 @@ f.close()
 print('Model loaded.')
 
 #load file
-all_data = np.loadtxt('../final_weekly_data_500.txt')
+all_data = np.loadtxt('../final_daily_data_500.txt')
 
 all_data = all_data.reshape((all_data.shape[0], height, width, 1))
 
@@ -56,8 +56,8 @@ SE_output = all_data[:, height_red:, 0:width_red, :]
 tempSE = SE_output.reshape((SE_output.shape[0], height_red*width_red))
 indices = np.nonzero(np.any(tempSE != 0, axis=0))[0]
 
-X = np.loadtxt('../test_set/exp3/1_X.txt')
-Y = np.loadtxt('../test_set/exp3/1_Y.txt')
+X = np.loadtxt('../test_set/exp3/13_X.txt')
+Y = np.loadtxt('../test_set/exp3/13_Y.txt')
 
 X = X.reshape(X.shape[0], input_length, height_red, width_red, 1)
 Y = Y.reshape(Y.shape[0], input_length, height_red, width_red, 1)
@@ -72,7 +72,7 @@ Uncomment this part to assess specificity, sensitivity, F-score, MCC for a
 particular threshold
 """
 
-threshold = 0.29773
+threshold = 0.0795792
 prediction[prediction >= threshold] = 1
 prediction[prediction < threshold] = 0
 
@@ -88,8 +88,8 @@ print table
 """
 Uncomment this part to get a sample actual/prediction from test set
 """
-# min_threshold = 0.29773
-# max_threshold = .5
+# min_threshold = 0.130834
+# max_threshold = 0.2
 # levels = 3
 # interval = (max_threshold - min_threshold)/levels
 # temp_min = min_threshold
@@ -119,12 +119,12 @@ Uncomment this part to get a sample actual/prediction from test set
 # temp_sample_result = temp_sample_result.reshape(1, height_red, width_red, 1)
 # sample_prediction = np.zeros((1, height, width, 1))
 # sample_result = np.zeros((1, height, width, 1))
-# sample_prediction[0, height_red:, 0:width_red, :] = temp_sample_prediction[0]
-# sample_result[0, height_red:, 0:width_red, :] = temp_sample_result[0]
+# sample_prediction[0, height_red-1:, 0:width_red, :] = temp_sample_prediction[0]
+# sample_result[0, height_red-1:, 0:width_red, :] = temp_sample_result[0]
 # sample_prediction = sample_prediction.reshape(height, width)
 # sample_result = sample_result.reshape(height, width)
-# np.savetxt('../outputs/3/1.3_actual.txt', sample_result, fmt='%.1i')
-# np.savetxt('../outputs/3/1.3_pred.txt', sample_prediction, fmt='%.1i')
+# np.savetxt('../outputs/3/2_actual.txt', sample_result, fmt='%.1i')
+# np.savetxt('../outputs/3/2_pred.txt', sample_prediction, fmt='%.1i')
 
 
 """
@@ -134,7 +134,7 @@ over threshold
 # spec_y_val = []
 # fscore_y_val = []
 # recall_y_val = []
-# x_val = np.arange(0, .2, .001)
+# x_val = np.arange(.1, .2, .001)
 
 # for threshold in x_val:
 #     thresholded_prediction = np.copy(prediction)
@@ -146,7 +146,7 @@ over threshold
 #         result = thresholded_prediction[i, -1, :, :, :]
 #         result = result.reshape((height_red*width_red))
 #         acc += np_utils.accuracy(result[indices], actual[i, indices])
-#         f, r, s = fScore(result[indices], actual[i, indices])
+#         f, r, s, mcc = fScore(result[indices], actual[i, indices])
 #         F += f
 #         recall += r
 #         specificity += s
