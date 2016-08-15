@@ -665,5 +665,5 @@ $(document).ready(function () {
     	return newArray
     }
    	initAndDrawCebuBoundsAndPolygon()
-   	initAndDrawGird(250)
+   	initAndDrawGird(750)
 });

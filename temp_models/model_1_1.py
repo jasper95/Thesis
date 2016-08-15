@@ -8,62 +8,69 @@ from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.utils import np_utils
 from collections import Counter
 from keras.optimizers import SGD
+from os import sys, path
+sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+from helpers.preprocessing import load_data
+from helpers.util import shuffle_in_unison_inplace
 
-all_data = np.loadtxt('../final_weekly_data.txt')
-sample_size = all_data.shape[0]
-boxes = all_data.shape[1]
-all_data = all_data.reshape((sample_size, 1, 107, 72))
+all_data = np.loadtxt('../final_weekly_data_500.txt')
+input_data = load_data('weekly', 500)
 
+height = 54
+width = 36
+
+height_red = height/2
+width_red = width/2
+all_data = all_data.reshape((all_data.shape[0], 1, height, width))
+input_data = input_data.reshape((input_data.shape[0], 1, height, width))
 filter_size = 3
 padding_size = 1
 
-SE = all_data[:, :, 107/2:, 0:72/2]
-SE = SE.reshape((sample_size, 54*36))
-# indices = np.nonzero(np.any(SE != 0, axis=0))[0]
-# mask = np.ones(SE.shape, dtype=bool)
-# mask[:, indices] = False
-# SE[mask] = -1
+SE_input = input_data[:-1, :, height_red:, 0:width_red]
+SE_output = all_data[1:, :, height_red:, 0:width_red]
 
-SE = SE.reshape((sample_size, 1, 54, 36))
+X = SE_input.reshape((SE_input.shape[0], 1, height_red, width_red))
+Y = SE_output.reshape((SE_output.shape[0], height_red*width_red))
 
-# get SE division only
-X_train = SE[0:sample_size*.6]
-Y_train = SE[1:(sample_size*.6)+1]
-X_test = SE[sample_size*.6:-1]
-Y_test = SE[(sample_size*.6)+1:]
+Y[Y > 0] = 1
 
+# shuffling the data
+X, Y = shuffle_in_unison_inplace(X, Y)
 
-# change label shape
-Y_train = Y_train.reshape((X_train.shape[0], 54*36))
-Y_test = Y_test.reshape((Y_test.shape[0], 54*36))
+# 60% training, 20% validation, 20% test
+X_train = X[: X.shape[0]*.6]
+Y_train = Y[: Y.shape[0]*.6]
+X_val = X[X.shape[0]*.6: X.shape[0]*.8]
+Y_val = Y[Y.shape[0]*.6: Y.shape[0]*.8]
+X_test = X[X.shape[0]*.8:]
+Y_test = Y[Y.shape[0]*.8:]
 
-# change input to -1 or 1
-# X_train[X_train < 1] = X_test[X_test < 1] = -1
-# X_train[X_train >= 1] = X_test[X_test >= 1] = 1
-
-# change output to 0 or 1
-# Y_train[Y_train < 1] = Y_test[Y_test < 1] = 0
-# Y_train[Y_train >= 1] = Y_test[Y_test >= 1] = 1
-
+# saving test set to files for prediction
+np.savetxt('../train_set/exp1/1_X.txt',
+           X_train.reshape(X_train.shape[0], height_red*width_red))
+np.savetxt('../train_set/exp1/1_Y.txt',
+           Y_train.reshape(Y_train.shape[0], height_red*width_red))
+np.savetxt('../val_set/exp1/1_X.txt',
+           X_val.reshape(X_val.shape[0], height_red*width_red))
+np.savetxt('../val_set/exp1/1_Y.txt',
+           Y_val.reshape(Y_val.shape[0], height_red*width_red))
+np.savetxt('../test_set/exp1/1_X.txt',
+           X_test.reshape(X_test.shape[0], height_red*width_red))
+np.savetxt('../test_set/exp1/1_Y.txt',
+           Y_test.reshape(Y_test.shape[0], height_red*width_red))
 
 # build model
 model = Sequential()
 model.add(Convolution2D(1, filter_size, filter_size, border_mode='same',
-                        input_shape=(1, 54, 36)))
-model.add(Activation('relu'))
-model.add(Convolution2D(1, filter_size, filter_size, border_mode='same'))
-model.add(Activation('relu'))
-model.add(Convolution2D(1, filter_size, filter_size, border_mode='same'))
-model.add(Activation('relu'))
-model.add(Convolution2D(1, filter_size, filter_size, border_mode='same'))
-model.add(Activation('relu'))
+                        input_shape=(1, height_red, width_red)))
+model.add(LeakyReLU())
 model.add(Flatten())
-model.add(Dense(54*36))
-model.compile(loss='mse', optimizer='rmsprop')
+model.add(Dense(Y_train.shape[1], activation='tanh'))
+model.compile(loss='binary_crossentropy', optimizer='rmsprop')
 checkpoint = ModelCheckpoint('../weights/exp1_1.hdf5',
                              verbose=1, save_best_only=True)
-model.fit(X_train, Y_train, batch_size=32, nb_epoch=200,
-          validation_data=(X_test, Y_test), show_accuracy=True,
+model.fit(X_train, Y_train, batch_size=128, nb_epoch=1000,
+          validation_data=(X_val, Y_val), show_accuracy=True,
           callbacks=[checkpoint])
 
 # save model to json

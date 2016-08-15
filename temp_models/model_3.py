@@ -10,25 +10,26 @@ from helpers.preprocessing import load_data
 from helpers.util import shuffle_in_unison_inplace
 
 # loading processed data
-all_data = np.loadtxt('../final_daily_data_250.txt')
+all_data = np.loadtxt('../final_daily_data_750.txt')
 
 # loading preprocessed with avg and proba data
-input_data = load_data('daily', 250)
+input_data = load_data('daily', 750)
 
-height = 107
-width = 72
+height = 36
+width = 24
 input_length = 3
 
 height_red = height/2
 width_red = width/2
-height_red = height_red + 1 if (height_red % 2) == 1 else height_red
+
+# height_red = height_red + 1 if (height_red % 2) == 1 else height_red
 # reshaping to samples x height x width x channel
 all_data = all_data.reshape((all_data.shape[0], height, width, 1))
 input_data = input_data.reshape(all_data.shape)
 
 # get SE part only
-SE_input = input_data[:, height_red-1:, 0:width_red, :]
-SE_output = all_data[:, height_red-1:, 0:width_red, :]
+SE_input = input_data[:, height_red:, 0:width_red, :]
+SE_output = all_data[:, height_red:, 0:width_red, :]
 
 examples = all_data.shape[0]-input_length
 
@@ -45,22 +46,32 @@ for i in range(ts_input_data.shape[0]):
 X = ts_input_data[:, :-1, :, :, :]
 Y = ts_output_data[:, 1:, :, :, :]
 
-
 Y[Y > 0] = 1
 
 # shuffling the data
 X, Y = shuffle_in_unison_inplace(X, Y)
 
 # 60% training, 20% validation, 20% test
-X_train = X[:X.shape[0]*.8]
-Y_train = Y[:Y.shape[0]*.8]
+X_train = X[: X.shape[0]*.6]
+Y_train = Y[: Y.shape[0]*.6]
+X_val = X[X.shape[0]*.6: X.shape[0]*.8]
+Y_val = Y[Y.shape[0]*.6: Y.shape[0]*.8]
 X_test = X[X.shape[0]*.8:]
 Y_test = Y[Y.shape[0]*.8:]
 
+
 # saving test set to files for prediction
-np.savetxt('../test_set/exp3/14_X.txt',
+np.savetxt('../train_set/exp3/19_X.txt',
+           X_train.reshape(X_train.shape[0], input_length*height_red*width_red))
+np.savetxt('../train_set/exp3/19_Y.txt',
+           Y_train.reshape(Y_train.shape[0], input_length*height_red*width_red))
+np.savetxt('../val_set/exp3/19_X.txt',
+           X_val.reshape(X_val.shape[0], input_length*height_red*width_red))
+np.savetxt('../val_set/exp3/19_Y.txt',
+           Y_val.reshape(Y_val.shape[0], input_length*height_red*width_red))
+np.savetxt('../test_set/exp3/19_X.txt',
            X_test.reshape(X_test.shape[0], input_length*height_red*width_red))
-np.savetxt('../test_set/exp3/14_Y.txt',
+np.savetxt('../test_set/exp3/19_Y.txt',
            Y_test.reshape(Y_test.shape[0], input_length*height_red*width_red))
 
 
@@ -78,8 +89,8 @@ model.add(Convolution3D(nb_filter=1, kernel_dim1=1, kernel_dim2=3,
                         kernel_dim3=3, activation='tanh',
                         border_mode="same", dim_ordering='tf'))
 model.compile(loss='binary_crossentropy', optimizer='adadelta')
-checkpoint = ModelCheckpoint('../weights/exp3_14.hdf5',
+checkpoint = ModelCheckpoint('../weights/exp3_19.hdf5',
                              verbose=1, save_best_only=True)
-model.fit(X_train, Y_train, batch_size=128, nb_epoch=1000,
-          validation_split=0.25, show_accuracy=True,
+model.fit(X_train, Y_train, batch_size=250, nb_epoch=10000,
+          validation_data=(X_val, Y_val), show_accuracy=True,
           callbacks=[checkpoint])

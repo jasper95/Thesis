@@ -25,3 +25,14 @@ def shuffle_in_unison_inplace(a, b):
     assert len(a) == len(b)
     p = np.random.permutation(len(a))
     return a[p], b[p]
+
+
+def get_breakdown(pred, truth):
+    counts = Counter(zip(pred, truth))
+    true_pos = float(counts[1.0, 1.0])
+    false_pos = float(counts[1.0, 0.0])
+    true_neg = float(counts[0.0, 0.0])
+    false_neg = float(counts[0.0, 1.0])
+    print('true_pos', true_pos, 'false_pos', false_pos, 'true_neg', true_neg,
+          'false_neg', false_neg)
+    return [true_pos, false_pos, true_neg, false_neg]
